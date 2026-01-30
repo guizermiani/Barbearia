@@ -1,0 +1,35 @@
+{% extends 'base.html' %} {% block title %}Clientes{% endblock %} {% block
+content %}
+<div class="card p-4 shadow-sm">
+  <h1 class="h5 mb-3">{{ titulo }}</h1>
+
+  <a href="{{ url_for('salvar_cliente') }}" class="btn btn-primary mb-3"
+    >Novo Cliente</a
+  >
+
+  <table class="table table-striped">
+    <thead>
+      <tr>
+        <th>ID</th>
+        <th>Nome</th>
+        <th>Sexo</th>
+        <th>Telefone</th>
+        <th>Senha</th>
+        <th>Observação</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for c in clientes %}
+      <tr>
+        <td>{{ c[0] }}</td>
+        <td>{{ c[1] }}</td>
+        <td>{{ c[2] }}</td>
+        <td>{{ c[3] }}</td>
+        <td>{{ c[4] }}</td>
+        <td>{{ c[5] }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}
