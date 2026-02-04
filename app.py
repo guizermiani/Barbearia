@@ -12,6 +12,10 @@ def home():
     nome = "Sistema de Barbearia"
     return render_template("home.html" , nome=nome)
 
+@app.route("/")
+def index():
+    return redirect(url_for("home"))
+
 @app.route("/barbearias/novo", methods=['GET','POST'])
 def salvar_barbearia():
     if request.method == 'POST':
