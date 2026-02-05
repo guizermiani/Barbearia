@@ -2,6 +2,8 @@ from flask import Flask, render_template, request, redirect, url_for, jsonify
 from db.conexao import conecta_db
 from db.barbearia_bd import consultar_barbearia_bd, inserir_barbearia_bd, alterar_barbearia_bd
 from db.cliente_bd import listar_cliente, inserir_cliente
+from db.profissionais_bd import listar_profissionais_bd, inserir_profissionais_bd
+from db.servicos_bd import listar_servicos_bd, inserir_servicos_bd
 
 app = Flask(__name__)
 
@@ -70,6 +72,55 @@ def listar_clientes():
     )
     clientes = cursor.fetchall()
     return render_template("cliente_list.html", clientes=clientes, titulo="Clientes")
+
+#profissionais
+
+@app.route("/profissionais/listar", methods=["GET", "POST"])
+def profissional_listar():
+    conexao = conecta_db()
+    profissionais = listar_profissionais_bd(conexao)
+    return render_template("profissional_listar.html", profissionais=profissionais)
+
+@app.route("/profissionais/novo", methods=["GET", "POST"])
+def profissional_salvar():
+    if request.method == 'POST':
+        nome = request.form.get('nome')
+        telefone = request.form.get('telefone')
+        senha = request.form.get('senha')
+        
+        if not nome or not senha:
+            return "<h3> Por favor, preencha todos os campos</h3>"
+        
+        conexao = conecta_db()
+        inserir_profissionais_bd(conexao,nome,telefone,senha)
+
+        return f"<h2> Profissional Salvo com Sucesso:  {nome} </h2>"
+    return render_template("profissional_form.html")
+
+# servicos
+
+@app.route("/servicos/listar", methods=["GET", "POST"])
+def servico_listar():
+    conexao = conecta_db()
+    servicos = listar_servicos_bd(conexao)
+    return render_template("servico_list.html", servicos=servicos)
+
+@app.route("/servicos/novo", methods=["GET", "POST"])
+def servico_salvar():
+    if request.method == 'POST':
+        nome = request.form.get('nome')
+        tempo_estimado = request.form.get('tempo_estimado')
+        valor_servico = request.form.get('valor_servico')
+        
+        if not nome:
+            return "<h3> Por favor, preencha todos os campos</h3>"
+        
+        conexao = conecta_db()
+        inserir_servicos_bd(conexao, nome, tempo_estimado, valor_servico)
+
+        return f"<h2> Serviço Salvo com Sucesso:  {nome} </h2>"
+    return render_template("servico_form.html")
+
 
 if __name__ == "__main__":
     app.run(debug=True)

@@ -1,0 +1,25 @@
+{% extends 'base.html' %} {% block title %}Serviços{% endblock %} {% block
+content %}
+<div class="card p-4 shadow-sm">
+  <h1 class="h5 mb-3">{{ titulo }}</h1>
+  <form action="{{ url_for('servico_salvar') }}" method="post">
+    <div class="mb-3">
+      <label class="form-label">Nome</label>
+      <input class="form-control" type="text" name="nome" />
+    </div>
+    <div class="mb-3">
+      <label class="form-label">Tempo Estimado</label>
+      <input class="form-control" type="time" name="tempo_estimado" />
+    </div>
+    <div class="mb-3">
+      <label class="form-label">Valor do Serviço</label>
+      <input class="form-control" type="number" name="valor_servico" />
+    </div>
+
+    <button class="btn btn-success" type="submit">Salvar</button>
+    <a href="{{ url_for('servico_listar') }}" class="btn btn-secondary"
+      >Voltar</a
+    >
+  </form>
+</div>
+{% endblock %}
