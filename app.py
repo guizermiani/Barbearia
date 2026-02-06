@@ -4,8 +4,59 @@ from db.barbearia_bd import consultar_barbearia_bd, inserir_barbearia_bd, altera
 from db.cliente_bd import listar_cliente, inserir_cliente
 from db.profissionais_bd import listar_profissionais_bd, inserir_profissionais_bd
 from db.servicos_bd import listar_servicos_bd, inserir_servicos_bd
+from db.login_bd import login_profissional_bd, login_cliente_bd
+from db.agendamento_bd import inserir_agendamento_bd, listar_agendamento_bd
 
 app = Flask(__name__)
+
+# login
+
+@app.route('/login', methods=['GET','POST'])
+def login():
+    if request.method == 'POST':
+        usuario = request.form.get('usuario')
+        senha = request.form.get('senha')
+
+        # Valida campos obrigatórios; ajuste aqui para autenticar de verdade
+        if not usuario or not senha:
+            erro = "Preencha usuário e senha para entrar."
+            return render_template("login.html", erro=erro)
+        
+        conexao = conecta_db()
+        valida_login = login_profissional_bd(conexao,usuario, senha)
+        # Antes de redirecionar vamos fazer a validação do usuario e senha
+
+        if valida_login == "OK":
+            return redirect(url_for('home'))
+        else:
+            return render_template("login.html",erro=valida_login)
+        
+    # Obriga a passar no login.html    
+    return render_template("login.html")
+
+@app.route('/login/cliente', methods=['GET','POST'])
+def login_cliente():
+    if request.method == 'POST':
+        usuario = request.form.get('usuario')
+        senha = request.form.get('senha')
+
+        # Valida campos obrigatórios; ajuste aqui para autenticar de verdade
+        if not usuario or not senha:
+            erro = "Preencha usuário e senha para entrar."
+            return render_template("login_cliente.html", erro=erro)
+        
+        conexao = conecta_db()
+        valida_login = login_cliente_bd(conexao,usuario, senha)
+        # Antes de redirecionar vamos fazer a validação do usuario e senha
+
+        if valida_login == "OK":
+            return redirect(url_for('area_cliente'))
+        else:
+            return render_template("login_cliente.html",erro=valida_login)
+        
+    # Obriga a passar no login.html    
+    return render_template("login_cliente.html")
+
 
 
 #barber
@@ -13,6 +64,11 @@ app = Flask(__name__)
 def home():
     nome = "Sistema de Barbearia"
     return render_template("home.html" , nome=nome)
+
+@app.route("/area_cliente")
+def area_cliente():
+    nome = "Área do Cliente"
+    return render_template("area_cliente.html", nome=nome)
 
 @app.route("/")
 def index():
@@ -40,6 +96,35 @@ def barbearia_listar():
     conexao = conecta_db()
     barbearias = consultar_barbearia_bd(conexao)
     return render_template("barbearia_listar.html", barbearias=barbearias)
+
+# agendamentos
+
+@app.route("/agendamentos/listar", methods=['GET','POST'])
+def agendamento_listar():
+    conexao = conecta_db()
+    agendamentos = listar_agendamento_bd(conexao)
+    return render_template("agendamento_listar.html", agendamentos=agendamentos)
+
+@app.route("/agendamentos/novo", methods=['GET','POST'])
+def salvar_agendamento():
+    if request.method == "POST":
+        id_cliente = request.form.get("id_cliente")
+        id_profissional = request.form.get("id_profissional")
+        id_servico = request.form.get("id_servico")
+        data_hora = request.form.get("data_hora")
+        valor_servico = request.form.get("valor_servico")
+        status = request.form.get("status")
+
+        conexao = conecta_db()
+        inserir_agendamento_bd(conexao, id_cliente, id_profissional, id_servico, data_hora, valor_servico, status  )
+
+        return f"<h2> Agendamento salvo com sucesso! </h2>"
+
+    return render_template("agendamento_form.html", titulo="Cadastrar Agendamento")
+
+
+
+
 
 
 #cliente
