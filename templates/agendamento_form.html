@@ -1,4 +1,5 @@
-{% extends 'base_cliente.html' %} {% block title %}Agenndamento{% endblock %} {% block
+{% extends 'base_cliente.html' %} {% block title %}Agendamento
+{% endblock %} {% block
 content %}
 <div class="card p-4 shadow-sm">
   <h1 class="h5 mb-3">Agendamento</h1>
@@ -7,18 +8,42 @@ content %}
       <label class="form-label">ID Cliente</label>
       <input class="form-control" type="text" name="id_cliente" />
     </div>
-    <div class="mb-3">
-      <label class="form-label">ID Profissional</label>
-      <input class="form-control" type="text" name="id_profissional" />
+
+    <div class = "mb-3">
+        <label class = "form-label">Barbeiro</label>
+        <select class = "form-select" name = "barbeiro_id">
+              {% for b in barbeiros %}
+                <option value="{{ b[0] }}">{{ b[0] }}</option>
+              {% endfor %}
+        </select>
     </div>
-    <div class="mb-3">
-      <label class="form-label">ID Serviço</label>
-      <input class="form-control" type="number" name="id_servico" />
+
+    <div class = "mb-3">
+        <label class = "form-label">Serviço</label>
+        <select class = "form-select" name = "servico_id">
+              {% for s in servicos %}
+                <option value="{{ s[0] }}">{{ s[0] }}</option>
+              {% endfor %}
+        </select>
     </div>
-    <div class="mb-3">
-      <label class="form-label">Data e Hora</label>
-      <input class="form-control" type="text" name="data_hora" />
-    </div>
+    
+  
+    <div class="row g-3 mb-3">
+            <div class="col-md-4">
+                <label class="form-label">Data</label>
+                <input class="form-control" type="date" id="data" required>
+                <div class="form-text">Agende de hoje até 30 dias.</div>
+            </div>
+            <div class="col-md-8">
+                <label class="form-label">Horário (30 em 30 min)</label>
+                <select class="form-select" id="hora" required>
+                    <!-- opções preenchidas via JS para reduzir manutenção -->
+                </select>
+                <div class="form-text">Mostre apenas horários úteis; ocupados podem ser desabilitados depois.</div>
+            </div>
+            <input type="hidden" name="data_hora" id="data_hora">
+        </div>
+        
     <div class="mb-3">
       <label class="form-label">Valor do Serviço</label>
       <input class="form-control" type="number" name="valor_servico" />
@@ -33,4 +58,66 @@ content %}
     >
   </form>
 </div>
+
+<script>
+  document.addEventListener("DOMContentLoaded", () => {
+    const dataInput = document.getElementById("data");
+    const horaSelect = document.getElementById("hora");
+    const dataHoraHidden = document.getElementById("data_hora");
+
+    const hoje = new Date();
+    const max = new Date();
+    max.setDate(hoje.getDate() + 30);
+
+    const toISODate = (d) => d.toISOString().slice(0, 10);
+    dataInput.min = toISODate(hoje);
+    dataInput.max = toISODate(max);
+
+    // Gera slots de 30 minutos dentro de 08-12 e 13-18
+    const gerarSlots = () => {
+      const slots = [];
+      const blocos = [
+        { inicio: 8, fim: 12 },
+        { inicio: 13, fim: 18 },
+      ];
+      blocos.forEach(({ inicio, fim }) => {
+        for (let h = inicio; h < fim; h++) {
+          ["00", "30"].forEach((m) => slots.push(`${String(h).padStart(2, "0")}:${m}`));
+        }
+      });
+      return slots;
+    };
+
+    const popularSelect = () => {
+      horaSelect.innerHTML = '<option value="">Selecione um horário</option>';
+      gerarSlots().forEach((slot) => {
+        const opt = document.createElement("option");
+        opt.value = slot;
+        opt.textContent = slot;
+        horaSelect.appendChild(opt);
+      });
+    };
+
+    const atualizarHidden = () => {
+      if (dataInput.value && horaSelect.value) {
+        dataHoraHidden.value = `${dataInput.value} ${horaSelect.value}`;
+      } else {
+        dataHoraHidden.value = "";
+      }
+    };
+
+    popularSelect();
+    dataInput.addEventListener("change", atualizarHidden);
+    horaSelect.addEventListener("change", atualizarHidden);
+
+    // Impede envio sem data/hora montados
+    document.querySelector("form").addEventListener("submit", (e) => {
+      atualizarHidden();
+      if (!dataHoraHidden.value) {
+        e.preventDefault();
+        alert("Escolha a data e o horário para continuar.");
+      }
+    });
+  });
+</script>
 {% endblock %}
