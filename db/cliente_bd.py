@@ -35,7 +35,7 @@ def atualizar_cliente(conexao,sexo, nome, telefone, observacao, id):
     cursor = conexao.cursor()
     sql_update = """update clientes set sexo = %s, nome = %s, telefone = %s, observacao = %s 
                     where id = %s"""
-    dados = (sexo, nome, telefone,observacao, id)   
+    dados = (sexo, nome, telefone, observacao, id)   
     cursor.execute(sql_update, dados)
     conexao.commit()
 
