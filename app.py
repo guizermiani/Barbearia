@@ -8,30 +8,12 @@ from db.profissionais_bd import listar_profissionais_bd, inserir_profissionais_b
 from db.servicos_bd import listar_servicos_bd, inserir_servicos_bd
 from db.login_bd import login_profissional_bd, login_cliente_bd
 from db.agendamento_bd import inserir_agendamento_bd, listar_agendamento_bd
+from auth import login_required, login_required_cliente
 
 app = Flask(__name__)
 app.secret_key = "gui"
 
-def login_required(f):
-    @wraps(f)
-    def decorated(*args, **kwargs):
-        if 'usuario_logado' not in session:
-            return redirect(url_for('login'))
-        return f(*args, **kwargs)
-    return decorated
-
-def login_required_cliente(f):
-    @wraps(f)
-    def decorated(*args, **kwargs):
-        if 'cliente_logado' not in session:
-            return redirect(url_for('login_cliente'))
-        return f(*args, **kwargs)
-    return decorated
-
-
-
 # login
-
 @app.route('/admin', methods=['GET','POST'])
 def login():
     if request.method == 'POST':
