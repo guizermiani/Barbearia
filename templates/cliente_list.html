@@ -14,7 +14,6 @@ content %}
         <th>Nome</th>
         <th>Sexo</th>
         <th>Telefone</th>
-        <th>Senha</th>
         <th>Observação</th>
       </tr>
     </thead>
@@ -25,9 +24,19 @@ content %}
         <td>{{ c[1] }}</td>
         <td>{{ c[2] }}</td>
         <td>{{ c[3] }}</td>
-        <td>{{ c[4] }}</td>
         <td>{{ c[5] }}</td>
-      </tr>
+      
+      <td>
+          <a
+            class="btn btn-sm btn-danger"
+            onclick = "return confirm('Tem certeza que deseja deletar o cliente {{ c[1] }}?');"
+            >Deletar</a
+          >
+          <a href="{{ url_for('cliente_editar', id=c[0]) }}" class="btn btn-sm btn-secondary"
+            >Editar</a
+            >
+        </td>
+        </tr>
       {% endfor %}
     </tbody>
   </table>

@@ -3,20 +3,21 @@ import bcrypt
 
 def listar_cliente(conexao):
     cursor = conexao.cursor()
-    cursor.execute("select id, sexo, nome, telefone, senha, observacao from clientes by order id asc")
+    cursor.execute("select id, sexo, nome, telefone, senha, observacao from clientes order by id asc")
     registros = cursor.fetchall()
     return registros
 
-def consultar_cliente_id(conexao):
-    id = input("Digite o ID: ")
+def consultar_cliente_id(conexao, id):
     cursor = conexao.cursor()
-    cursor.execute("select id, sexo, nome, telefone, senha, observacao from clientes where id = " + id)
-    registros = cursor.fetchall()
-    return registros
+    cursor.execute("select id,nome,sexo,telefone,senha,observacao from clientes where id = " + str(id))
+    registro = cursor.fetchone()
+    
+    if registro is None:
+        return None
+    else:
+        return registro
 
 def inserir_cliente(conexao, sexo, nome, telefone, senha, observacao):
-
-
     senha = senha.encode("utf-8")
     salt = bcrypt.gensalt()
     hash_senha = bcrypt.hashpw(senha, salt)
@@ -30,11 +31,11 @@ def inserir_cliente(conexao, sexo, nome, telefone, senha, observacao):
     cursor.execute(sql_insert, dados)
     conexao.commit()
 
-def atualizar_cliente(conexao, id, sexo, nome, telefone, senha, observacao):
+def atualizar_cliente(conexao,sexo, nome, telefone, observacao, id):
     cursor = conexao.cursor()
-    sql_update = """update clientes set sexo = %s, nome = %s, telefone = %s, senha = %s, observacao = %s 
+    sql_update = """update clientes set sexo = %s, nome = %s, telefone = %s, observacao = %s 
                     where id = %s"""
-    dados = (sexo, nome, telefone, senha, observacao, id)   
+    dados = (sexo, nome, telefone,observacao, id)   
     cursor.execute(sql_update, dados)
     conexao.commit()
 

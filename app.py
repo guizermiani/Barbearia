@@ -1,17 +1,38 @@
-from flask import Flask, render_template, request, redirect, url_for, jsonify
+from functools import wraps
+from flask import Flask, render_template, request, redirect, session, url_for, jsonify
+from db import conexao
 from db.conexao import conecta_db
 from db.barbearia_bd import consultar_barbearia_bd, inserir_barbearia_bd, alterar_barbearia_bd
-from db.cliente_bd import listar_cliente, inserir_cliente
+from db.cliente_bd import listar_cliente, inserir_cliente, consultar_cliente_id, atualizar_cliente
 from db.profissionais_bd import listar_profissionais_bd, inserir_profissionais_bd
 from db.servicos_bd import listar_servicos_bd, inserir_servicos_bd
 from db.login_bd import login_profissional_bd, login_cliente_bd
 from db.agendamento_bd import inserir_agendamento_bd, listar_agendamento_bd
 
 app = Flask(__name__)
+app.secret_key = "gui"
+
+def login_required(f):
+    @wraps(f)
+    def decorated(*args, **kwargs):
+        if 'usuario_logado' not in session:
+            return redirect(url_for('login'))
+        return f(*args, **kwargs)
+    return decorated
+
+def login_required_cliente(f):
+    @wraps(f)
+    def decorated(*args, **kwargs):
+        if 'cliente_logado' not in session:
+            return redirect(url_for('login_cliente'))
+        return f(*args, **kwargs)
+    return decorated
+
+
 
 # login
 
-@app.route('/login', methods=['GET','POST'])
+@app.route('/admin', methods=['GET','POST'])
 def login():
     if request.method == 'POST':
         usuario = request.form.get('usuario')
@@ -27,6 +48,7 @@ def login():
         # Antes de redirecionar vamos fazer a validação do usuario e senha
 
         if valida_login == "OK":
+            session['usuario_logado'] = usuario
             return redirect(url_for('home'))
         else:
             return render_template("login.html",erro=valida_login)
@@ -50,6 +72,7 @@ def login_cliente():
         # Antes de redirecionar vamos fazer a validação do usuario e senha
 
         if valida_login == "OK":
+            session['cliente_logado'] = usuario
             return redirect(url_for('area_cliente'))
         else:
             return render_template("login_cliente.html",erro=valida_login)
@@ -61,6 +84,7 @@ def login_cliente():
 
 #barber
 @app.route("/home")
+@login_required
 def home():
     nome = "Sistema de Barbearia"
     return render_template("home.html" , nome=nome)
@@ -70,11 +94,8 @@ def area_cliente():
     nome = "Área do Cliente"
     return render_template("area_cliente.html", nome=nome)
 
-@app.route("/")
-def index():
-    return redirect(url_for("home"))
-
 @app.route("/barbearias/novo", methods=['GET','POST'])
+@login_required
 def salvar_barbearia():
     if request.method == 'POST':
         nome = request.form.get('nome')
@@ -92,6 +113,7 @@ def salvar_barbearia():
     return render_template("barbearia_form.html")
 
 @app.route("/barbearias/listar", methods=['GET','POST'])
+@login_required
 def barbearia_listar():
     conexao = conecta_db()
     barbearias = consultar_barbearia_bd(conexao)
@@ -100,12 +122,14 @@ def barbearia_listar():
 # agendamentos
 
 @app.route("/agendamentos/listar", methods=['GET','POST'])
+@login_required
 def agendamento_listar():
     conexao = conecta_db()
     agendamentos = listar_agendamento_bd(conexao)
     return render_template("agendamento_listar.html", agendamentos=agendamentos)
 
 @app.route("/agendamentos/novo", methods=['GET','POST'])
+@login_required_cliente
 def salvar_agendamento():
     conexao = conecta_db()
     barbeiros = listar_profissionais_bd(conexao)
@@ -135,6 +159,7 @@ def salvar_agendamento():
 #cliente
 
 @app.route("/salvar/cliente", methods=["GET", "POST"])
+@login_required_cliente
 def salvar_cliente():
     if request.method == "POST":
         nome = request.form.get("nome")
@@ -153,7 +178,27 @@ def salvar_cliente():
 
     return render_template("cliente_form.html", titulo="Cadastrar Cliente")
 
+@app.route("/cliente/<int:id>/editar", methods=["GET", "POST"])
+@login_required_cliente
+def cliente_editar(id):
+    conexao = conecta_db()
+    cliente = consultar_cliente_id(conexao, id)
+    if request.method == "GET":
+        if not cliente:
+         return "<h3>Cliente não encontrado</h3>"
+        return render_template("cliente_editar.html", cliente = cliente)
+    
+    sexo = request.form.get("sexo")
+    nome = request.form.get("nome")
+    telefone = request.form.get("telefone")
+    observacao = request.form.get("observacao")
+ 
+       
+    atualizar_cliente(conexao, sexo, nome, telefone, observacao, id)
+    return render_template("cliente_list.html", clientes=listar_cliente(conexao), titulo="Clientes")
+
 @app.route("/listar/clientes", methods=["GET"])
+@login_required
 def listar_clientes():
     conexao = conecta_db()
     cursor = conexao.cursor()
@@ -166,12 +211,14 @@ def listar_clientes():
 #profissionais
 
 @app.route("/profissionais/listar", methods=["GET", "POST"])
+@login_required
 def profissional_listar():
     conexao = conecta_db()
     profissionais = listar_profissionais_bd(conexao)
     return render_template("profissional_listar.html", profissionais=profissionais)
 
 @app.route("/profissionais/novo", methods=["GET", "POST"])
+@login_required
 def profissional_salvar():
     if request.method == 'POST':
         nome = request.form.get('nome')
@@ -190,12 +237,14 @@ def profissional_salvar():
 # servicos
 
 @app.route("/servicos/listar", methods=["GET", "POST"])
+@login_required
 def servico_listar():
     conexao = conecta_db()
     servicos = listar_servicos_bd(conexao)
     return render_template("servico_list.html", servicos=servicos)
 
 @app.route("/servicos/novo", methods=["GET", "POST"])
+@login_required
 def servico_salvar():
     if request.method == 'POST':
         nome = request.form.get('nome')
@@ -211,6 +260,15 @@ def servico_salvar():
         return f"<h2> Serviço Salvo com Sucesso:  {nome} </h2>"
     return render_template("servico_form.html")
 
+@app.route("/logout)")
+def logout():
+    session.pop("usuario_logado", None)
+    return redirect(url_for("login"))
+
+@app.route("/logout_cliente)")
+def logout_cliente():
+    session.pop("cliente_logado", None)
+    return redirect(url_for("login_cliente"))
 
 if __name__ == "__main__":
     app.run(debug=True)

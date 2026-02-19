@@ -1,0 +1,28 @@
+{% extends 'base.html' %} {% block title %}Clientes{% endblock %} {% block
+content %}
+<div class="card p-4 shadow-sm">
+  <h1 class="h5 mb-3">{{ titulo }}</h1>
+  <form action="{{ url_for('cliente_editar', id=cliente[0]) }}" method="post">
+    <div class="mb-3">
+      <label class="form-label">Sexo</label>
+      <input class="form-control" type="text" name="sexo" value="{{ cliente[2] }}" />
+    </div>
+    <div class="mb-3">
+      <label class="form-label">Nome</label>
+      <input class="form-control" type="text" name="nome" value="{{ cliente[1] }}" />
+    </div>
+    <div class="mb-3">
+      <label class="form-label">Telefone</label>
+      <input class="form-control" type="number" name="telefone" value="{{ cliente[3] }}" />
+    </div>
+    <div class="mb-3">
+      <label class="form-label">Observação</label>
+      <input class="form-control" type="text" name="observacao" value="{{ cliente[5] }}" />
+    </div>
+    <button class="btn btn-success" type="submit">Salvar Alterações</button>
+    <a href="{{ url_for('listar_clientes') }}" class="btn btn-secondary"
+      >Voltar</a
+    >
+  </form>
+</div>
+{% endblock %}
