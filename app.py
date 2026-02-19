@@ -10,8 +10,12 @@ from db.login_bd import login_profissional_bd, login_cliente_bd
 from db.agendamento_bd import inserir_agendamento_bd, listar_agendamento_bd
 from auth import login_required, login_required_cliente
 
+from routes.barbearia import barbearias
+
 app = Flask(__name__)
 app.secret_key = "gui"
+
+app.register_blueprint(barbearias)
 
 # login
 @app.route('/admin', methods=['GET','POST'])
@@ -75,31 +79,6 @@ def home():
 def area_cliente():
     nome = "Área do Cliente"
     return render_template("area_cliente.html", nome=nome)
-
-@app.route("/barbearias/novo", methods=['GET','POST'])
-@login_required
-def salvar_barbearia():
-    if request.method == 'POST':
-        nome = request.form.get('nome')
-        telefone = request.form.get('telefone')
-        endereco = request.form.get('endereco')
-        formas_pagamento = request.form.get('formas_pagamento')
-
-        if not nome:
-            return "<h3> Por favor, preencha todos os campos</h3"
-        
-        conexao = conecta_db()
-        inserir_barbearia_bd(conexao,nome,telefone,endereco,formas_pagamento)
-
-        return f"<h2> Barbearia Salva com Sucesso:  {nome} </h2>"
-    return render_template("barbearia_form.html")
-
-@app.route("/barbearias/listar", methods=['GET','POST'])
-@login_required
-def barbearia_listar():
-    conexao = conecta_db()
-    barbearias = consultar_barbearia_bd(conexao)
-    return render_template("barbearia_listar.html", barbearias=barbearias)
 
 # agendamentos
 
