@@ -3,7 +3,7 @@ content %}
 
 <div class="card p-4 shadow-sm">
   <h1 class="h5 mb-3">{{ titulo }}</h1>
-  <form action="/barbearia/novo" method="post">
+  <form action="{{ url_for('barbearia_salvar') }}" method="post">
     <div class="mb-3">
       <label class="form-label">Nome</label>
       <input class="form-control" type="text" name="nome" />
