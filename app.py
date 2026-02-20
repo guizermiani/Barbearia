@@ -65,6 +65,7 @@ def login_cliente():
 
 
 #barber
+
 @app.route("/home")
 @login_required
 def home():
